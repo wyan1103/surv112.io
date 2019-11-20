@@ -2,18 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d48de905-b664-4b74-8284-eef01755149f" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/surv112.io.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Framework.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Game.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/GameObject.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Nature.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Player.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Server.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/framework.py" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/Items.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Weapons.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Framework.py" beforeDir="false" afterPath="$PROJECT_DIR$/Framework.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Game.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GameObject.py" beforeDir="false" afterPath="$PROJECT_DIR$/GameObject.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Nature.py" beforeDir="false" afterPath="$PROJECT_DIR$/Nature.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Player.py" beforeDir="false" afterPath="$PROJECT_DIR$/Player.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -26,8 +22,29 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Framework.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="697">
-              <caret line="42" selection-start-line="42" selection-end-line="42" />
+            <state relative-caret-position="173">
+              <caret line="47" column="18" selection-start-line="47" selection-start-column="18" selection-end-line="47" selection-end-column="18" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Items.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="224">
+              <caret line="20" column="36" lean-forward="true" selection-start-line="20" selection-start-column="23" selection-end-line="20" selection-end-column="36" />
+              <folding>
+                <element signature="e#0#13#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Nature.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="238">
+              <caret line="14" column="44" selection-start-line="14" selection-start-column="44" selection-end-line="14" selection-end-column="44" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -38,8 +55,21 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Game.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="208">
-              <caret line="45" selection-start-line="45" selection-end-line="45" />
+            <state relative-caret-position="204">
+              <caret line="39" column="39" lean-forward="true" selection-start-line="39" selection-start-column="39" selection-end-line="39" selection-end-column="39" />
+              <folding>
+                <element signature="e#0#13#0" expanded="true" />
+                <element signature="e#5687#7650#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Player.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="309">
+              <caret line="76" column="24" selection-start-line="76" selection-start-column="24" selection-end-line="76" selection-end-column="24" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -48,31 +78,27 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Server.py">
+        <entry file="file://$PROJECT_DIR$/Weapons.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="841">
-              <caret line="65" column="26" selection-start-line="65" selection-start-column="26" selection-end-line="65" selection-end-column="26" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Nature.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="272">
-              <caret line="18" selection-start-line="18" selection-end-line="18" />
+            <state relative-caret-position="85">
+              <caret line="53" column="23" lean-forward="true" selection-start-line="53" selection-start-column="23" selection-end-line="53" selection-end-column="23" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
             </state>
           </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/gun-long-cropped.png">
+          <provider selected="true" editor-type-id="images" />
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GameObject.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="153">
-              <caret line="9" column="8" selection-start-line="9" selection-start-column="8" selection-end-line="9" selection-end-column="59" />
+            <state relative-caret-position="289">
+              <caret line="18" column="55" selection-start-line="18" selection-start-column="55" selection-end-line="18" selection-end-column="55" />
             </state>
           </provider>
         </entry>
@@ -91,6 +117,16 @@
       <find>names</find>
       <find>self.me</find>
       <find>playernum</find>
+      <find>._.</find>
+      <find>blit</find>
+      <find>prin</find>
+      <find>rect</find>
+      <find>self.bull</find>
+      <find>print</find>
+      <find>weaponitem</find>
+      <find>treegr</find>
+      <find>update</find>
+      <find>super()</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -104,19 +140,22 @@
         <option value="$PROJECT_DIR$/game.py" />
         <option value="$PROJECT_DIR$/framework.py" />
         <option value="$PROJECT_DIR$/PygameGame.py" />
-        <option value="$PROJECT_DIR$/Framework.py" />
-        <option value="$PROJECT_DIR$/Nature.py" />
-        <option value="$PROJECT_DIR$/GameObject.py" />
         <option value="$PROJECT_DIR$/server.py" />
+        <option value="$PROJECT_DIR$/Items.py" />
+        <option value="$PROJECT_DIR$/Framework.py" />
+        <option value="$PROJECT_DIR$/GameObject.py" />
         <option value="$PROJECT_DIR$/Player.py" />
+        <option value="$PROJECT_DIR$/Nature.py" />
+        <option value="$PROJECT_DIR$/Weapons.py" />
         <option value="$PROJECT_DIR$/Game.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="953" />
-    <option name="width" value="974" />
-    <option name="height" value="1047" />
+    <option name="x" value="952" />
+    <option name="y" value="-8" />
+    <option name="width" value="976" />
+    <option name="height" value="1056" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -228,6 +267,9 @@
       </list>
     </recent_temporary>
   </component>
+  <component name="StructureViewFactory">
+    <option name="ACTIVE_ACTIONS" value=",ALPHA_COMPARATOR" />
+  </component>
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -245,15 +287,15 @@
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <layout>
       <window_info id="Favorites" order="0" side_tool="true" />
-      <window_info content_ui="combo" id="Project" order="1" visible="true" weight="0.09272919" />
-      <window_info id="Structure" order="2" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Terminal" order="0" weight="0.32827735" />
+      <window_info content_ui="combo" id="Project" order="1" sideWeight="0.49945828" visible="true" weight="0.045310855" />
+      <window_info id="Structure" order="2" sideWeight="0.5005417" side_tool="true" visible="true" weight="0.045310855" />
+      <window_info anchor="bottom" id="Terminal" order="0" weight="0.32822758" />
       <window_info anchor="bottom" id="Event Log" order="1" side_tool="true" />
       <window_info anchor="bottom" id="Python Console" order="2" weight="0.32932165" />
       <window_info anchor="bottom" id="Message" order="3" />
       <window_info anchor="bottom" id="Find" order="4" />
       <window_info anchor="bottom" id="Version Control" order="5" />
-      <window_info anchor="bottom" id="Run" order="6" weight="0.32502708" />
+      <window_info anchor="bottom" id="Run" order="6" weight="0.30010834" />
       <window_info anchor="bottom" id="Debug" order="7" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="8" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="9" weight="0.4" />
@@ -264,15 +306,15 @@
     </layout>
     <layout-to-restore>
       <window_info id="Favorites" order="0" side_tool="true" />
-      <window_info content_ui="combo" id="Project" order="1" visible="true" weight="0.09272919" />
+      <window_info content_ui="combo" id="Project" order="1" weight="0.09272919" />
       <window_info id="Structure" order="2" side_tool="true" weight="0.25" />
-      <window_info anchor="bottom" id="Terminal" order="0" weight="0.32827735" />
+      <window_info anchor="bottom" id="Terminal" order="0" weight="0.32822758" />
       <window_info anchor="bottom" id="Event Log" order="1" side_tool="true" />
       <window_info anchor="bottom" id="Python Console" order="2" weight="0.32932165" />
       <window_info anchor="bottom" id="Message" order="3" />
       <window_info anchor="bottom" id="Find" order="4" />
       <window_info anchor="bottom" id="Version Control" order="5" />
-      <window_info active="true" anchor="bottom" id="Run" order="6" visible="true" weight="0.32827735" />
+      <window_info active="true" anchor="bottom" id="Run" order="6" visible="true" weight="0.30010834" />
       <window_info anchor="bottom" id="Debug" order="7" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="8" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="9" weight="0.4" />
@@ -290,37 +332,34 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python37-32/Lib/site-packages/pygame/sprite.py">
+    <entry file="file://$PROJECT_DIR$/Server.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="341">
-          <caret line="475" selection-start-line="475" selection-end-line="475" />
+        <state relative-caret-position="841">
+          <caret line="65" column="26" selection-start-line="65" selection-start-column="26" selection-end-line="65" selection-end-column="26" />
         </state>
       </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gun-long.png">
+      <provider selected="true" editor-type-id="images" />
     </entry>
     <entry file="file://$PROJECT_DIR$/Framework.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="697">
-          <caret line="42" selection-start-line="42" selection-end-line="42" />
-          <folding>
-            <element signature="e#0#13#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="173">
+          <caret line="47" column="18" selection-start-line="47" selection-start-column="18" selection-end-line="47" selection-end-column="18" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Player.py">
+    <entry file="file://$USER_HOME$/AppData/Local/Programs/Python/Python37-32/Lib/site-packages/pygame/sprite.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1037">
-          <caret line="63" column="22" selection-start-line="63" selection-start-column="22" selection-end-line="63" selection-end-column="22" />
-          <folding>
-            <element signature="e#0#13#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="199">
+          <caret line="320" selection-start-line="320" selection-end-line="320" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Nature.py">
+    <entry file="file://$PROJECT_DIR$/Items.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
-          <caret line="18" selection-start-line="18" selection-end-line="18" />
+        <state relative-caret-position="224">
+          <caret line="20" column="36" lean-forward="true" selection-start-line="20" selection-start-column="23" selection-end-line="20" selection-end-column="36" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
           </folding>
@@ -329,24 +368,51 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/GameObject.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="153">
-          <caret line="9" column="8" selection-start-line="9" selection-start-column="8" selection-end-line="9" selection-end-column="59" />
+        <state relative-caret-position="289">
+          <caret line="18" column="55" selection-start-line="18" selection-start-column="55" selection-end-line="18" selection-end-column="55" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Server.py">
+    <entry file="file://$PROJECT_DIR$/Player.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="841">
-          <caret line="65" column="26" selection-start-line="65" selection-start-column="26" selection-end-line="65" selection-end-column="26" />
+        <state relative-caret-position="309">
+          <caret line="76" column="24" selection-start-line="76" selection-start-column="24" selection-end-line="76" selection-end-column="24" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gun-long-cropped.png">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Weapons.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="85">
+          <caret line="53" column="23" lean-forward="true" selection-start-line="53" selection-start-column="23" selection-end-line="53" selection-end-column="23" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Nature.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="238">
+          <caret line="14" column="44" selection-start-line="14" selection-start-column="44" selection-end-line="14" selection-end-column="44" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Game.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="208">
-          <caret line="45" selection-start-line="45" selection-end-line="45" />
+        <state relative-caret-position="204">
+          <caret line="39" column="39" lean-forward="true" selection-start-line="39" selection-start-column="39" selection-end-line="39" selection-end-column="39" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
+            <element signature="e#5687#7650#0" />
           </folding>
         </state>
       </provider>
