@@ -5,7 +5,10 @@ from Items import *
 BULLET_RADIUS = 5
 BROWN = (77, 38, 0)
 LIGHT_GRAY = (230, 230, 230)
-AMMO_COLORS = {'9mm' : (255, 153, 0)}
+AMMO_COLORS = {'9mm'  :  (255, 204, 0),
+               '7.62' :  (102, 102, 255),
+               '5.56' :  (0, 255, 170),
+               '12g'  :  (255, 51, 153)}
 
 class Weapon(pygame.sprite.Sprite):
 
@@ -13,7 +16,7 @@ class Weapon(pygame.sprite.Sprite):
     def init():
         Weapon.baseImage = pygame.image.load('./gun-long.png').convert_alpha()
 
-    def __init__(self, player, dmg, type):
+    def __init__(self, player, dmg, type, fireDelay, bulletSpeed=15, bulletSpread=0.2):
         super().__init__()
         self.baseImage = aspect_scale(Weapon.baseImage.copy(), 20, 200)
         self.image = self.baseImage
@@ -26,6 +29,10 @@ class Weapon(pygame.sprite.Sprite):
         self.angle = 0
         self.type = type
         self.dmg = dmg
+        self.fireDelay = fireDelay        # time per shot in ms
+        self.lastShot = 0
+        self.bulletSpeed = bulletSpeed
+        self.bulletSpread = bulletSpread
         self.color = AMMO_COLORS[type]
 
     def updateRect(self, scrollX, scrollY):
@@ -57,7 +64,7 @@ class WeaponItem(Item):
         self.type = type
 
     def createWeapon(self, player):
-        return Weapon(player, 100, '9mm')
+        return Weapon(player, 20, '9mm', 100)
 
 
 class Bullet(GameObject):
@@ -77,9 +84,24 @@ class Bullet(GameObject):
         self.distanceTravelled += (self.dx**2 + self.dy**2)**0.5
         super().update(scrollX, scrollY)
 
-
     def __repr__(self):
         return f"({self.x}, {self.y})"
+
+
+class Ammo(Item):
+
+    @staticmethod
+    def drawItem(surface, x, y, color, r=AMMO_RADIUS):
+        x, y, r = round(x), round(y), round(r)
+        pygame.draw.rect(surface, color, pygame.Rect(x, y, 2 * r, 2 * r))
+        pygame.draw.rect(surface, BLACK, pygame.Rect(x, y, 2 * r, 2 * r), 3)
+
+    def __init__(self, type, x, y, amount=30, r=AMMO_RADIUS):
+        super().__init__(x, y, r, AMMO_COLORS[type])
+        pygame.draw.rect(self.image, self.color, pygame.Rect(0, 0, self.rect.width, self.rect.height))
+        pygame.draw.rect(self.image, BLACK, pygame.Rect(0, 0, self.rect.width, self.rect.height), 4)
+        self.type = type
+        self.amount = amount
 
 
 

@@ -1,7 +1,7 @@
 import pygame
 import pygame.gfxdraw
 import numpy as np
-import math, copy
+import math, copy, random
 from GameObject import GameObject
 from Weapons import *
 
@@ -13,7 +13,7 @@ class Player(GameObject):
         super().__init__(x, y, r)
         pygame.gfxdraw.filled_circle(self.image, r, r, r-2, PEACH)
         pygame.draw.circle(self.image, BLACK, (r, r), r, 3)
-        self.health = 100
+        self.hp = 100
         self.rect = pygame.Rect(x - r, y - r, 2 * r, 2 * r)
         self.inventory = []
         self.inventorySize = 12
@@ -21,10 +21,13 @@ class Player(GameObject):
         self.secondaryGun = None
         self.equippedGun = None
         self.openInventory = False
+        self.gameOver = False
+        self.ammo = {'9mm' : 0, '7.62' : 0, '5.56' : 0, '12g' : 0}
+        self.ammoLimits = {'9mm' : 150, '7.62' : 120, '5.56' : 120, '12g' : 24}
 
-    def update(self, keysDown, obstacles, scrollX, scrollY):
+    def update(self, keysDown, time, obstacles, scrollX, scrollY):
         if keysDown(pygame.K_a):
-            print(self.x, self.y)
+            print(self.hp)
         if keysDown(pygame.K_LEFT):
             self.move(-5, 0, obstacles)
         if keysDown(pygame.K_RIGHT):
@@ -73,27 +76,46 @@ class Player(GameObject):
         if self.equippedGun is not None:
             self.equippedGun.rotate(x, y)
 
-    def shoot(self, x, y):
-        bulletSpeed = 15
+    def shoot(self, x, y, time):
+        bulletSpeed = self.equippedGun.bulletSpeed
         type = self.equippedGun.type
         dmg = self.equippedGun.dmg
 
-        dx, dy = x - self.x, y - self.y
-        dist = (dx**2 + dy**2)**0.5
-        time = dist / bulletSpeed
+        if self.ammo[type] <= 0 or time - self.equippedGun.lastShot < self.equippedGun.fireDelay:
+            return None
+        self.ammo[type] -= 1
+        self.equippedGun.lastShot = time
 
+        dx, dy = x - self.x, y - self.y
+        dx *= 1 + (2 * (random.random()-0.5) * self.equippedGun.bulletSpread)
+        dy *= 1 + (2 * (random.random() - 0.5) * self.equippedGun.bulletSpread)
+
+        dist = (dx ** 2 + dy ** 2) ** 0.5
+        time = dist / bulletSpeed
         xVelocity, yVelocity = dx / time, dy / time
-        return Bullet(self.x, self.y, xVelocity, yVelocity, dmg, type)
+
+        return Bullet(self.x + xVelocity*6, self.y + yVelocity*6, xVelocity, yVelocity, dmg, type)
 
 
     # adds an item to inventory, returning False if inventory is full
-    def pickUpItem(self, item):
+    def pickUpItem(self, item, itemGroup):
         if isinstance(item, WeaponItem):
             if self.primaryGun is not None:
                 self.primaryGun.drop(self.x, self.y)
             self.primaryGun = item.createWeapon(self)
             self.equippedGun = self.primaryGun
             return True
+
+        if isinstance(item, Ammo):
+            type = item.type
+            if self.ammo[type] < self.ammoLimits[type]:
+                self.ammo[type] += item.amount
+                if self.ammo[type] > self.ammoLimits[type]:
+                    excess = self.ammo[type] - self.ammoLimits[type]
+                    self.ammo[type] = self.ammoLimits[type]
+
+                return True
+
         if len(self.inventory) < self.inventorySize:
             self.inventory.append(item)
             return True

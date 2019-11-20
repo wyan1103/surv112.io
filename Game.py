@@ -46,15 +46,16 @@ class Game(PygameGame):
 
     def init(self):
         # self.server, self.serverMsg = self.setUpServer()
-
+        pygame.font.init()
 
         Weapon.init()
         self.initX, self.initY = 300, 300
         self.player = Player(self.initX, self.initY, 40)
         self.scrollX, self.scrollY = 0, 0
+        self.pauseBullets = False
 
         self.playerGroup = pygame.sprite.Group(self.player)
-        self.otherPlayers = dict()
+        self.allPlayers = pygame.sprite.Group(self.player)
 
         self.bushGroup = pygame.sprite.Group()
         self.obstacles = pygame.sprite.Group()      # stuff the player can run into
@@ -64,6 +65,7 @@ class Game(PygameGame):
         self.initBushes()
         self.initTrees()
         self.initHealth()
+        self.initAmmo()
 
         Weapon.init()
         self.items.add(WeaponItem('9mm', 400, 250))
@@ -73,48 +75,59 @@ class Game(PygameGame):
 
     def mousePressed(self, x, y):
         if self.player.equippedGun is not None:
-            self.bullets.add(self.player.shoot(x + self.scrollX, y + self.scrollY))
-            print(self.bullets)
+            bullet = self.player.shoot(x + self.scrollX, y + self.scrollY, pygame.time.get_ticks())
+            if bullet is not None:
+                self.bullets.add(bullet)
 
     def keyPressed(self, keyCode, mod):
         if keyCode == pygame.K_f:
             itemCollisions = pygame.sprite.groupcollide(self.playerGroup, self.items, False, False)
             if self.player in itemCollisions:
                 item = itemCollisions[self.player][0]
-                pickedUp = self.player.pickUpItem(item)
+                pickedUp = self.player.pickUpItem(item, self.items)
                 if pickedUp:
                     self.items.remove(item)
         if keyCode == pygame.K_i:
             self.player.openInventory = not self.player.openInventory
+        if keyCode == pygame.K_p:
+            self.pauseBullets = True
+        if keyCode == pygame.K_o:
+            self.pauseBullets = False
 
 
     def timerFired(self, dt):
         self.scrollX, self.scrollY = self.player.x - self.initX, self.player.y - self.initY
-        self.player.update(self.isKeyPressed, self.obstacles, self.scrollX, self.scrollY)
+        self.player.update(self.isKeyPressed, pygame.time.get_ticks(), self.obstacles, self.scrollX, self.scrollY)
         self.bushGroup.update(self.scrollX, self.scrollY)
         self.obstacles.update(self.scrollX, self.scrollY)
         self.items.update(self.scrollX, self.scrollY)
-        self.bullets.update(self.scrollX, self.scrollY)
 
-        # check for collisions between bullets and players / walls
-        bulletCollisions = pygame.sprite.groupcollide(self.bullets, self.obstacles, True, False)
-        for bullet, target in bulletCollisions.items():
-            target[0].hp -= bullet.dmg
-            if target[0].hp <= 0:
-                self.obstacles.remove(target[0])
+        if not self.pauseBullets:
+            self.bullets.update(self.scrollX, self.scrollY)
 
-        bulletBushCollisions = pygame.sprite.groupcollide(self.bullets, self.bushGroup, False, False)
-        for bullet, bush in bulletBushCollisions.items():
-            if bush[0] not in bullet.bushesSeen:
-                bush[0].hp -= bullet.dmg
-                if bush[0].hp <= 0:
-                    self.bushGroup.remove(bush[0])
-            bullet.bushesSeen.add(bush[0])
+            # check for collisions between bullets and walls
+            bulletCollisions = pygame.sprite.groupcollide(self.bullets, self.obstacles, True, False)
+            for bullet, target in bulletCollisions.items():
+                target[0].hp -= bullet.dmg
+                if target[0].hp <= 0:
+                    self.obstacles.remove(target[0])
 
-        # delete bullets that have gone too far
-        for bullet in self.bullets:
-            if bullet.distanceTravelled > 500:
-                self.bullets.remove(bullet)
+            bulletBushCollisions = pygame.sprite.groupcollide(self.bullets, self.bushGroup, False, False)
+            for bullet, bush in bulletBushCollisions.items():
+                if bush[0] not in bullet.bushesSeen:
+                    bush[0].hp -= bullet.dmg
+                    if bush[0].hp <= 0:
+                        self.bushGroup.remove(bush[0])
+                bullet.bushesSeen.add(bush[0])
+
+            bulletPlayerCollisions = pygame.sprite.groupcollide(self.bullets, self.allPlayers, True, False)
+            for bullet, player in bulletPlayerCollisions.items():
+                player[0].hp -= bullet.dmg
+
+            # delete bullets that have gone too far
+            for bullet in self.bullets:
+                if bullet.distanceTravelled > 500:
+                    self.bullets.remove(bullet)
 
         # self.server.send(f"playerPos {self.player.PID} {self.player.x} {self.player.y}")
 
@@ -129,12 +142,13 @@ class Game(PygameGame):
             gunGroup = pygame.sprite.Group(self.player.equippedGun)
             gunGroup.draw(screen)
         self.playerGroup.draw(screen)
-
-        self.bushGroup.draw(screen)
         self.obstacles.draw(screen)
+        self.bushGroup.draw(screen)
 
         if self.player.openInventory:
             self.displayInventory(screen)
+
+        self.drawHealthBar(screen)
 
     def drawGridLines(self, screen):
 
@@ -190,10 +204,11 @@ class Game(PygameGame):
         darkGray = (166, 166, 166)
         lightGray = (217, 217, 217)
 
+        # draw basic inventory layout
         pygame.draw.rect(screen, darkGray, invRect)
         pygame.draw.rect(screen, black, invRect, 5)
 
-
+        # draw primary and secondary weapon displays
         primaryRect = pygame.Rect(leftMargin + 20, topMargin + 30, 2*invWidth/5, 2 * invHeight / 7)
         secondaryRect = pygame.Rect(leftMargin + 20, topMargin + 50 + invHeight/3, 2*invWidth/5, 2 * invHeight / 7)
         pygame.draw.rect(screen, lightGray, primaryRect)
@@ -207,6 +222,7 @@ class Game(PygameGame):
         itemsWidth = (invRect.right - primaryRect.right- 20) / 4 - 20
         itemsHeight = (secondaryRect.bottom - primaryRect.top + 40) / 3 - 20
 
+        # draw item display
         for r in range(3):
             for c in range(4):
                 itemsRect = pygame.Rect(itemsLeft, itemsTop, itemsWidth, itemsHeight)
@@ -216,7 +232,7 @@ class Game(PygameGame):
                 x, y = itemsRect.centerx, itemsRect.centery
                 if 4*r+c < len(self.player.inventory):
                     item = self.player.inventory[4*r+c]
-                    item.drawItem(screen, x, y, itemsWidth/3)
+                    item.drawItem(screen, x, y, item.color, itemsWidth/3)
 
                 itemsLeft += itemsWidth + 20
             itemsTop += itemsHeight + 20
@@ -225,6 +241,37 @@ class Game(PygameGame):
         if self.player.primaryGun is not None:
             self.player.primaryGun.drawWeapon(screen, primaryRect.centerx, primaryRect.centery,
                                               2*primaryRect.width/3, 2*primaryRect.height/3)
+
+        # draw ammo display
+        left = primaryRect.left
+        top = invRect.bottom - 70
+        width = (invWidth - 20) / 4 - 20
+        for type, color in AMMO_COLORS.items():
+            margin = 10
+            ammoRadius = 15
+
+            boxRect = pygame.Rect(left, top, width, 2 * (margin + ammoRadius))
+            pygame.draw.rect(screen, lightGray, boxRect)
+            pygame.draw.rect(screen, black, boxRect, 3)
+            Ammo.drawItem(screen, left+margin, top+margin, color, 15)
+
+            ammoFont = pygame.font.SysFont('Arial', 32, True, False)
+            ammoSurface = ammoFont.render(str(self.player.ammo[type]), True, black)
+            screen.blit(ammoSurface, (boxRect.left + 2 * (margin + ammoRadius), boxRect.top + 2*margin/3))
+
+            left += 20 + width
+
+    def drawHealthBar(self, screen):
+        left = screen.get_rect().width / 4
+        top = 9 * screen.get_rect().height / 10
+        barWidth = screen.get_rect().width/2
+        barHeight = screen.get_rect().height/20
+
+        ratio = self.player.hp/100
+        if ratio < 0: ratio = 0
+        r, g, b = 255, 255 * math.sqrt(ratio), 255 * math.sqrt(ratio)
+        pygame.draw.rect(screen, (r, g, b), pygame.Rect(left, top, barWidth * ratio, barHeight))
+        pygame.draw.rect(screen, BLACK, pygame.Rect(left, top, barWidth, barHeight), 4)
 
     def initBushes(self):
         b1 = Bush(100, 200, 50)
@@ -240,5 +287,11 @@ class Game(PygameGame):
         h1 = MedKit(300, 500)
         h2 = MedKit(300, 100)
         self.items = pygame.sprite.Group(h1, h2)
+
+    def initAmmo(self):
+        a1 = Ammo('9mm', 500, 500)
+        a2 = Ammo('9mm', 300, 300)
+        a3 = Ammo('9mm', 400, 150, 50)
+        self.items.add(a1, a2, a3)
 
 Game(600, 600).run()
