@@ -4,44 +4,67 @@ import numpy as np
 import math, copy, random
 from GameObject import GameObject
 from Weapons import *
+from Items import *
+from Constants import *
 
-PEACH = (255, 204, 153)
-BLACK = (0, 0, 0)
 
 class Player(GameObject):
     def __init__(self, x, y, r):
         super().__init__(x, y, r)
+        self.rect = pygame.Rect(300 - r, 300 - r, 2 * r, 2 * r)
         pygame.gfxdraw.filled_circle(self.image, r, r, r-2, PEACH)
         pygame.draw.circle(self.image, BLACK, (r, r), r, 3)
         self.hp = 100
-        self.rect = pygame.Rect(x - r, y - r, 2 * r, 2 * r)
+        self.speed = 5
         self.inventory = []
         self.inventorySize = 12
         self.primaryGun = None
         self.secondaryGun = None
         self.equippedGun = None
-        self.openInventory = False
         self.gameOver = False
+        self.isSlow = False
+        self.isMoving = False
+        self.itemInUse = None
+        self.slowDuration = 0
+        self.timerStart = 0
+        self.itemTimer = 0
         self.ammo = {'9mm' : 0, '7.62' : 0, '5.56' : 0, '12g' : 0}
-        self.ammoLimits = {'9mm' : 150, '7.62' : 120, '5.56' : 120, '12g' : 24}
+        self.ammoLimits = {'9mm' : 100, '7.62' : 120, '5.56' : 120, '12g' : 24}
 
+    # Updates the player's in-game position
     def update(self, keysDown, time, obstacles, scrollX, scrollY):
+        if self.isSlow:
+            self.itemTimer = time - self.timerStart
+            if self.itemTimer >= self.slowDuration:
+                self.finishUseItem()
+                self.isSlow = False
+                self.itemInUse = None
+                self.itemTimer = 0
+
         if keysDown(pygame.K_a):
-            print(self.hp)
+            pass
+        speed = self.speed // 2 if self.isSlow else self.speed
+
         if keysDown(pygame.K_LEFT):
-            self.move(-5, 0, obstacles)
+            self.move(-speed, 0, obstacles)
         if keysDown(pygame.K_RIGHT):
-            self.move(5, 0, obstacles)
+            self.move(speed, 0, obstacles)
         if keysDown(pygame.K_UP):
-            self.move(0, -5, obstacles)
+            self.move(0, -speed, obstacles)
         if keysDown(pygame.K_DOWN):
-            self.move(0, 5, obstacles)
+            self.move(0, speed, obstacles)
+
+        # moving left and right simultaneously is equivalent to not moving
+        if keysDown(pygame.K_LEFT) == keysDown(pygame.K_RIGHT) and \
+                keysDown(pygame.K_UP) == keysDown(pygame.K_DOWN):
+            self.isMoving = False
 
         if self.equippedGun is not None:
             self.equippedGun.update(scrollX, scrollY)
 
     '''TODO: Fix collision detection to differentiate between polygons and circles'''
     def move(self, dx, dy, obs):
+        self.isMoving = True
         obstacles = copy.copy(obs)
         for obstacle in obstacles:
 
@@ -76,32 +99,78 @@ class Player(GameObject):
         if self.equippedGun is not None:
             self.equippedGun.rotate(x, y)
 
-    def shoot(self, x, y, time):
+    def startReload(self, time):
+        weapon = self.equippedGun
+        if self.itemInUse is not None:
+            return
+
+        self.isSlow = True
+        self.slowDuration = weapon.reloadTime
+        self.itemTimer = 0
+        self.timerStart= time
+        self.itemInUse = weapon
+
+    def finishReload(self):
+        weapon = self.equippedGun
+        type = weapon.type
+
+        # if out of ammo, do nothing
+        if self.ammo[type] <= 0:
+            return
+        # if cannot reload to full, put the rest of the ammo into the gun
+        elif self.ammo[type] + weapon.ammo <= weapon.magSize:
+            weapon.ammo = self.ammo[type] + weapon.ammo
+            self.ammo[type] = 0
+        # otherwise, deduct the necessary amount from player inventory and add to gun ammo
+        else:
+            self.ammo[type] -= weapon.magSize - weapon.ammo
+            weapon.ammo = weapon.magSize
+
+
+    # if the player has a weapon, creates a new bullet based on weapon properties and dispersion.
+    def shoot(self, x, y, time, isBot=False):
         bulletSpeed = self.equippedGun.bulletSpeed
         type = self.equippedGun.type
         dmg = self.equippedGun.dmg
 
-        if self.ammo[type] <= 0 or time - self.equippedGun.lastShot < self.equippedGun.fireDelay:
+        # do nothing if out of ammo or if the gun is on cooldown
+        if self.equippedGun.ammo <= 0 or time - self.equippedGun.lastShot < self.equippedGun.fireDelay:
             return None
         self.ammo[type] -= 1
         self.equippedGun.lastShot = time
 
+        # add dispersion based to bullets based on where the player is aiming
         dx, dy = x - self.x, y - self.y
-        dx *= 1 + (2 * (random.random()-0.5) * self.equippedGun.bulletSpread)
-        dy *= 1 + (2 * (random.random() - 0.5) * self.equippedGun.bulletSpread)
+        dist = (dx ** 2 + dy ** 2) ** 0.5
+        # a random number from -1 to 1 is created and multiplied by the gun's dispersion as a
+        # percent offset from the actual target.
+        dx *= 1 + (2 * (random.random()-0.5) * self.equippedGun.bulletSpread) * dx / dist
+        dy *= 1 + (2 * (random.random() - 0.5) * self.equippedGun.bulletSpread) * dy / dist
 
+        # calculate velocity by dividing distance travelled by time for both x and y
         dist = (dx ** 2 + dy ** 2) ** 0.5
         time = dist / bulletSpeed
         xVelocity, yVelocity = dx / time, dy / time
 
-        return Bullet(self.x + xVelocity*6, self.y + yVelocity*6, xVelocity, yVelocity, dmg, type)
+        self.equippedGun.ammo -= 1
 
+        # return different types of bullets depending on if the shooter is a bot or
+        if isBot:
+            return BotBullet(self.x + xVelocity * (4/SCALE), self.y + yVelocity * (4/SCALE),
+                             xVelocity, yVelocity, dmg, type, self)
+        else:
+            return Bullet(self.x + xVelocity*(6/SCALE), self.y + yVelocity*(6/SCALE),
+                          xVelocity, yVelocity, dmg, type)
+
+    def takeDmg(self, dmg):
+        self.hp -= dmg
+        if self.hp < 0:
+            self.hp = 0
+            '''TODO: Implement game over here'''
 
     # adds an item to inventory, returning False if inventory is full
     def pickUpItem(self, item, itemGroup):
         if isinstance(item, WeaponItem):
-            if self.primaryGun is not None:
-                self.primaryGun.drop(self.x, self.y)
             self.primaryGun = item.createWeapon(self)
             self.equippedGun = self.primaryGun
             return True
@@ -113,6 +182,7 @@ class Player(GameObject):
                 if self.ammo[type] > self.ammoLimits[type]:
                     excess = self.ammo[type] - self.ammoLimits[type]
                     self.ammo[type] = self.ammoLimits[type]
+                    self.dropAmmo(type, itemGroup, excess)
 
                 return True
 
@@ -121,34 +191,42 @@ class Player(GameObject):
             return True
         return False
 
+    def dropAmmo(self, type, gameItems, amount=None):
+        xSpeed = (random.random() - 0.5) * 20
+        ySpeed = (random.random() - 0.5) * 20
+        if amount is not None:
+            gameItems.add(Ammo(type, self.x, self.y, amount, AMMO_RADIUS, xSpeed, ySpeed))
+
+        if self.ammo[type] > 90:
+            amount = 30
+        elif self.ammo[type] <= 2:
+            amount = self.ammo[type]
+        else:
+            amount = self.ammo[type] // 3
+        self.ammo[type] -= amount
+        gameItems.add(Ammo(type, self.x, self.y, amount, AMMO_RADIUS, xSpeed, ySpeed))
+
+    def useItem(self, item, time):
+        if self.itemInUse is not None:
+            return
+        self.isSlow = True
+        self.slowDuration = item.time
+        self.itemTimer = 0
+        self.timerStart= time
+        self.itemInUse = item
+
+        try: self.inventory.remove(item)
+        except: pass  # avoid a tragedy if something wrong happens
+
+    def finishUseItem(self):
+        # if reloading a gun, do that
+        if self.itemInUse.type in AMMO_COLORS:
+            self.finishReload()
+        # if healing, restore hp
+        if self.itemInUse.type == 'health':
+            self.hp += self.itemInUse.heal
+            if self.hp > 100:
+                self.hp = 100
+
     def changePID(self, PID):
         self.PID = PID
-
-
-# copied from https://www.pygame.org/pcr/transform_scale/aspect_scale.py
-def aspect_scale(img, bx, by):
-    """ Scales 'img' to fit into box bx/by.
-     This method will retain the original image's aspect ratio """
-    ix,iy = img.get_size()
-    if ix > iy:
-        # fit to width
-        scale_factor = bx/float(ix)
-        sy = scale_factor * iy
-        if sy > by:
-            scale_factor = by/float(iy)
-            sx = scale_factor * ix
-            sy = by
-        else:
-            sx = bx
-    else:
-        # fit to height
-        scale_factor = by/float(iy)
-        sx = scale_factor * ix
-        if sx > bx:
-            scale_factor = bx/float(ix)
-            sx = bx
-            sy = scale_factor * iy
-        else:
-            sy = by
-
-    return pygame.transform.scale(img, (sx, sy))

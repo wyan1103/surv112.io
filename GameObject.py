@@ -13,8 +13,8 @@ class GameObject(pygame.sprite.Sprite):
         self.image = pygame.Surface((2 * r, 2 * r,), pygame.SRCALPHA).convert_alpha()
 
     def update(self, scrollX, scrollY):
-        x = self.x - (scrollX)
-        y = self.y - (scrollY)
+        x = self.x - scrollX
+        y = self.y - scrollY
         self.rect = pygame.Rect(x - self.r, y - self.r,
                                 2 * self.r, 2 * self.r)
 

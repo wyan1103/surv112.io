@@ -41,8 +41,8 @@ class PygameGame(object):
             time = clock.tick(self.fps)
             self.timerFired(time)
             for event in pygame.event.get():
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    self.mousePressed(*(event.pos))
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    self.mousePressed(*(event.pos), event.button)
                 # elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                 #     self.mouseReleased(*(event.pos))
                 elif (event.type == pygame.MOUSEMOTION and
