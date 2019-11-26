@@ -2,12 +2,14 @@
 SCALE = 1.3
 
 PEACH = (255, 204, 153)
+TAN = (255, 153, 51)
 BLACK = (0, 0, 0)
-HEALTH_COLOR = (0, 102, 255)
+MEDKIT_COLOR = (0, 102, 255)
+HEALTH_RED = (255, 80, 80)
 BANDAGE_COLOR = (0, 204, 255)
 ADREN_COLOR = (0, 102, 255)
 FOOD_COLOR = (255, 153, 102)
-BUSH_GREEN = (0, 102, 0, 220)
+BUSH_GREEN = (0, 102, 0, 250)
 TREE_BROWN = (102, 51, 0)
 LIGHT_GRAY = (230, 230, 230)
 
@@ -20,7 +22,7 @@ ITEM_COLORS = {'9mm'  :  (255, 204, 0),
                '7.62' :  (102, 102, 255),
                '5.56' :  (0, 255, 170),
                '12g'  :  (255, 51, 153),
-               'health' : HEALTH_COLOR,
+               'medkit' : MEDKIT_COLOR,
                'adrenaline' : ADREN_COLOR}
 
 

@@ -49,7 +49,6 @@ class Bot(Player):
             self.botMove(movement[0], movement[1], obstacles)
 
         if random.random() < shootChance:
-            print('._.')
             angle = random.random() * 360
             self.botShoot(angle, time, gameBullets)
 

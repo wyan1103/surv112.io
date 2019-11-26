@@ -23,34 +23,24 @@ class Game(PygameGame):
         Weapon.init()
 
         self.mapSize = 3000
-        # self.scrollX, self.scrollY = self.getRandomCoordinates(self.mapSize)
-        self.scrollX, self.scrollY = 300, 300
+        self.scrollX, self.scrollY = self.getRandomCoordinates(self.mapSize)
 
         self.bushGroup = pygame.sprite.Group()
         self.obstacles = pygame.sprite.Group()      # stuff the player can run into
         self.items = pygame.sprite.Group()
         self.bullets = pygame.sprite.Group()
+        self.bots = pygame.sprite.Group()
 
-        self.createMap()
-        self.player = Player(self.scrollX, self.scrollY, PLAYER_RADIUS)
+        self.createTestMap()  # uncomment for a test map with fixed objects
+        # self.createMap()    # uncomment for a randomized map
+
         self.playerGroup = pygame.sprite.Group(self.player)
         self.allPlayers = pygame.sprite.Group(self.player)
         self.otherPlayers = pygame.sprite.Group()
 
-        self.bots = pygame.sprite.Group()
-        self.initBots(self.player.x, self.player.y)
-
         self.pauseBullets = False
         self.openInventory = False
-
-
-        # self.initBushes()
-        # self.initTrees()
-        # self.initHealth()
-        # self.initAmmo()
-        # self.initBots()
-
-        self.items.add(WeaponItem('9mm', 400, 250))
+        self.isWave = False
 
     def mouseMotion(self, x, y):
         self.player.rotate(x + self.scrollX, y + self.scrollY)
@@ -119,15 +109,31 @@ class Game(PygameGame):
             self.openInventory = not self.openInventory
 
         if keyCode == pygame.K_r:
-            self.player.startReload(pygame.time.get_ticks())
+            if self.player.equippedGun is not None and \
+                self.player.equippedGun.ammo < self.player.equippedGun.magSize:
+                self.player.startReload(pygame.time.get_ticks())
+
+        if keyCode == pygame.K_w:
+            if not self.isWave:
+                self.spawnWave(self.player.x, self.player.y)
+                self.isWave = True
+            else:
+                print('There are still enemies left!')
 
         if keyCode == pygame.K_p:
-            self.pauseBullets = True
+            Bullet.pauseBullets = True
         if keyCode == pygame.K_o:
-            self.pauseBullets = False
+            Bullet.pauseBullets = False
 
 
     def timerFired(self, dt):
+        if self.isWave and len(self.bots) <= 0:
+            ZombieBot.finishWave()          # when all bots are dead, account for reward
+            print('WAVE OVER!')
+            print('\nBot Reward Table:', ZombieBot.dtpRewards, ZombieBot.rmcRewards, ZombieBot.rmdRewards)
+            self.isWave = False
+
+        # update all the objects to their new scrolled positions
         self.scrollX, self.scrollY = self.player.x - windowWidth//2, self.player.y - windowHeight//2
         self.player.update(self.isKeyPressed, pygame.time.get_ticks(), self.obstacles, self.scrollX, self.scrollY)
         self.otherPlayers.update(self.scrollX, self.scrollY)
@@ -136,17 +142,16 @@ class Game(PygameGame):
         self.items.update(self.scrollX, self.scrollY)
         self.bots.update(self.scrollX, self.scrollY)
         for bot in self.bots:
-            bot.move(self.obstacles, self.bots, self.player)
+            bot.move(self.obstacles, self.bots, self.player, pygame.time.get_ticks())
 
-        # move and check all bullets in the game (if they're not paused)
-        if not self.pauseBullets:
-            self.bullets.update(self.scrollX, self.scrollY)
-            self.checkBulletCollisions()
+        # move and check all bullets in the game
+        self.bullets.update(self.scrollX, self.scrollY)
+        self.checkBulletCollisions()
 
-            # delete bullets that have gone too far
-            for bullet in self.bullets:
-                if bullet.distanceTravelled > 500:
-                    self.bullets.remove(bullet)
+        # delete bullets that have gone too far
+        for bullet in self.bullets:
+            if bullet.distanceTravelled > 500:
+                self.bullets.remove(bullet)
 
         # execute a random action of the bot
         for bot in self.otherPlayers:
@@ -172,11 +177,9 @@ class Game(PygameGame):
 
         if self.openInventory:
             self.displayInventory(screen)
-
         self.drawHealthBar(screen)
 
     def drawGridLines(self, screen):
-
         gridSize = 200
         scrollX = round(self.scrollX)
         scrollY = round(self.scrollY)
@@ -291,13 +294,28 @@ class Game(PygameGame):
     def initHealth(self):
         h1 = MedKit(300, 500)
         h2 = MedKit(300, 100)
-        self.items = pygame.sprite.Group(h1, h2)
+        h3 = Bandage(120, 300)
+        h4 = Bandage(150, 250)
+        self.items.add(h1, h2, h3, h4)
 
-    def initAmmo(self):
-        a1 = Ammo('9mm', 500, 500)
-        a2 = Ammo('9mm', 300, 300)
-        a3 = Ammo('9mm', 400, 150, 50)
-        self.items.add(a1, a2, a3)
+    def initWeapons(self):
+        w1 = WeaponItem('12g', 400, 250)
+        a11 = Ammo('12g', 400, 210, 50)
+        a12 = Ammo('12g', 350, 240, 50)
+
+        w2 = WeaponItem('9mm', 520, 490)
+        a21 = Ammo('9mm', 460, 500, 50)
+        a22 = Ammo('9mm', 550, 480, 50)
+
+        w3 = WeaponItem('7.62', 410, 130)
+        a31 = Ammo('7.62', 380, 110, 50)
+        a32 = Ammo('7.62', 400, 90, 50)
+
+        w4 = WeaponItem('5.56', 150, 120)
+        a41 = Ammo('5.56', 130, 105, 50)
+        a42 = Ammo('5.56', 160, 90, 50)
+        self.items.add(w1, w2, w3, w4, a11, a12, a21, a22,
+                       a31, a32, a41, a42)
 
     def dropItem(self, item, remove=True):
         item.x, item.y = self.player.x, self.player.y
@@ -332,35 +350,41 @@ class Game(PygameGame):
                 self.player.equippedGun = None
             self.player.secondaryGun = None
 
+    # check for collisions between bullets and all sorts of stuff in the game
     def checkBulletCollisions(self):
-        # check for collisions between bullets and walls
         bulletCollisions = pygame.sprite.groupcollide(self.bullets, self.obstacles, True, False)
         for bullet, target in bulletCollisions.items():
             target[0].hp -= bullet.dmg
             if target[0].hp <= 0:
-                self.obstacles.remove(target[0])
+                self.obstacles.remove(target[0])    # obstacles are destructible
 
         bulletBushCollisions = pygame.sprite.groupcollide(self.bullets, self.bushGroup, False, False)
         for bullet, bush in bulletBushCollisions.items():
             if bush[0] not in bullet.bushesSeen:
                 bush[0].hp -= bullet.dmg
                 if bush[0].hp <= 0:
-                    self.bushGroup.remove(bush[0])
-            bullet.bushesSeen.add(bush[0])
+                    self.bushGroup.remove(bush[0])  # bushes too
+            bullet.bushesSeen.add(bush[0])          # so bullets pass through bushes but don't damage them twice
 
         bulletPlayerCollisions = pygame.sprite.groupcollide(self.bullets, self.allPlayers, True, False)
         for bullet, player in bulletPlayerCollisions.items():
             player[0].takeDmg(bullet.dmg)
 
+        bulletBotCollisions = pygame.sprite.groupcollide(self.bullets, self.bots, True, False)
+        for bullet, bot in bulletBotCollisions.items():
+            bot[0].takeDmg(bullet.dmg, self.bots)
 
-    def initBots(self, playerX, playerY):
-
-        b1 = ZombieBot(playerX + 300, playerY + 100)
-        b2 = ZombieBot(playerX + 200, playerY - 100)
-        # b3 = ZombieBot(playerX + 500, playerY + 100)
-        # b4 = ZombieBot(playerX + 200, playerY + 100)
-        self.bots.add(b1, b2)
-
+    # spawn a wave of melee bots
+    def spawnWave(self, playerX, playerY):
+        botCount = random.randint(2, 5)
+        ZombieBot.startWave(botCount)
+        print('Bot Params:', ZombieBot.dtp, ZombieBot.rmc, ZombieBot.rmd, '\n')
+        for bot in range(botCount):
+            xOffset = random.randint(windowWidth/2-50, windowWidth/2) * random.choice([1, -1])
+            yOffset = random.randint(windowHeight/2-50, windowHeight/2) * random.choice([1, -1])
+            newBot = ZombieBot(playerX + xOffset, playerY + yOffset)
+            self.bots.add(newBot)
+        self.botCount = botCount
 
     def createMap(self):
         mapSize = self.mapSize
@@ -425,9 +449,49 @@ class Game(PygameGame):
                 item = Ammo(ammoType, x, y)
                 self.items.add(item)
 
+
+        self.scrollX, self.scrollY = self.getRandomCoordinates(self.mapSize)
+        self.player = Player(self.scrollX, self.scrollY, PLAYER_RADIUS)
+        self.initBots(self.player.x, self.player.y)
+
+    def createTestMap(self):
+        self.initBushes()
+        self.initTrees()
+        self.initWeapons()
+        self.initHealth()
+        self.scrollX = 300
+        self.scrollY = 300
+
+        self.player = Player(self.scrollX, self.scrollY, PLAYER_RADIUS)
+
     def getRandomCoordinates(self, mapSize):
-        x = random.random() * 3000
-        y = random.random() * 3000
+        x = random.random() * mapSize
+        y = random.random() * mapSize
         return x, y
 
+gameInstructions = '''
+Instructions because I didn't make a splash screen yet:
+
+Note: If you're reading this, click the game screen right now or it will time out and close.
+No idea why this happens. OwO
+
+- Press 'F' to pick up items. You can currently only pick up one weapon at a time and a limited amount
+  of ammo and other stuff.
+
+- Gray circles are weapons, and are surrounded by their respective ammo types (squares).
+  Guns do not come with ammo, so you MUST reload it first with 'R', provided you have ammo.
+  
+- Brown circles are "trees" which you can't pass through, green circles are bushes which you can pass through.
+
+- Blue circles are healing items, there are two different types and using them slows you down for a bit.
+
+- To test healing items, you can shoot yourself! (or hug a bot) 
+  Press 'P' to pause bullets and 'O' to unpause them.
+
+- Press 'I' to open your inventory. Left click to use an item and right click to drop an item/weapon/ammo.
+
+- Press 'W' to spawn waves of bots who will learn after each wave!
+'''
+
+print(gameInstructions)
 Game(600, 600).run()

@@ -36,7 +36,11 @@ class Item(GameObject):
 
 class MedKit(Item):
     def __init__(self, x, y, r=ITEM_RADIUS, dx=0, dy=0):
-        super().__init__(x, y, r, HEALTH_COLOR, dx, dy)
+        super().__init__(x, y, r, MEDKIT_COLOR, dx, dy)
+        pygame.draw.line(self.image, BLACK, (self.r / 2, self.r),
+                         (self.r * 3 / 2, self.r), 2)
+        pygame.draw.line(self.image, BLACK, (self.r, self.r / 2),
+                         (self.r, self.r  * 3 / 2), 2)
         self.name = "MedKit"
         self.type = "health"
         self.heal = 80
@@ -46,6 +50,10 @@ class MedKit(Item):
 class Bandage(Item):
     def __init__(self, x, y, r=ITEM_RADIUS, dx=0, dy=0):
         super().__init__(x, y, r, BANDAGE_COLOR, dx, dy)
+        pygame.draw.line(self.image, BLACK, (self.r / 2, self.r),
+                         (self.r * 3 / 2, self.r), 2)
+        pygame.draw.line(self.image, BLACK, (self.r, self.r / 2),
+                         (self.r, self.r * 3 / 2), 2)
         self.name = "Bandage"
         self.type = "health"
         self.heal = 20
@@ -54,6 +62,6 @@ class Bandage(Item):
 
 class Adrenaline(Item):
     def __init__(self, x, y, r=ITEM_RADIUS, dx=0, dy=0):
-        super().__init__(x, y, r, HEALTH_COLOR, dx, dy)
+        super().__init__(x, y, r, BANDAGE_COLOR, dx, dy)
         self.name = "Adrenaline"
         self.type = 'adrenaline'

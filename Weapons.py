@@ -67,10 +67,13 @@ class WeaponItem(Item):
         self.type = type
 
     def createWeapon(self, player):
-        return Weapon(player, 30, self.type, 100)
+        return Weapon(player, 30, self.type, 500)
 
 
 class Bullet(GameObject):
+
+    pauseBullets = False
+
     def __init__(self, x, y, dx, dy, dmg, type):
         super().__init__(x, y, BULLET_RADIUS)
         super().update(self.x, self.y)
@@ -83,9 +86,10 @@ class Bullet(GameObject):
         self.bushesSeen = set()
 
     def update(self, scrollX, scrollY):
-        self.x += self.dx
-        self.y += self.dy
-        self.distanceTravelled += (self.dx**2 + self.dy**2)**0.5
+        if not self.pauseBullets:
+            self.x += self.dx
+            self.y += self.dy
+            self.distanceTravelled += (self.dx**2 + self.dy**2)**0.5
         super().update(scrollX, scrollY)
 
     def __repr__(self):

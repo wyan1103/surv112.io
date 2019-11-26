@@ -9,10 +9,10 @@ from Constants import *
 
 
 class Player(GameObject):
-    def __init__(self, x, y, r):
+    def __init__(self, x, y, r, color=PEACH):
         super().__init__(x, y, r)
         self.rect = pygame.Rect(300 - r, 300 - r, 2 * r, 2 * r)
-        pygame.gfxdraw.filled_circle(self.image, r, r, r-2, PEACH)
+        pygame.gfxdraw.filled_circle(self.image, r, r, r-2, color)
         pygame.draw.circle(self.image, BLACK, (r, r), r, 3)
         self.hp = 100
         self.speed = 5
@@ -159,7 +159,7 @@ class Player(GameObject):
             return BotBullet(self.x + xVelocity * (4/SCALE), self.y + yVelocity * (4/SCALE),
                              xVelocity, yVelocity, dmg, type, self)
         else:
-            return Bullet(self.x + xVelocity*(6/SCALE), self.y + yVelocity*(6/SCALE),
+            return Bullet(self.x + xVelocity*(4/SCALE), self.y + yVelocity*(4/SCALE),
                           xVelocity, yVelocity, dmg, type)
 
     def takeDmg(self, dmg):
