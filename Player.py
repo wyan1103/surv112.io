@@ -9,9 +9,9 @@ from Constants import *
 
 
 class Player(GameObject):
-    def __init__(self, x, y, r, color=PEACH):
+    def __init__(self, x, y, r, color=PEACH, game=None):
         super().__init__(x, y, r)
-        self.rect = pygame.Rect(300 - r, 300 - r, 2 * r, 2 * r)
+        self.rect = pygame.Rect(windowWidth // 2 - r, windowWidth // 2 - r, 2 * r, 2 * r)
         pygame.gfxdraw.filled_circle(self.image, r, r, r-2, color)
         pygame.draw.circle(self.image, BLACK, (r, r), r, 3)
         self.hp = 100
@@ -29,7 +29,8 @@ class Player(GameObject):
         self.timerStart = 0
         self.itemTimer = 0
         self.ammo = {'9mm' : 0, '7.62' : 0, '5.56' : 0, '12g' : 0}
-        self.ammoLimits = {'9mm' : 100, '7.62' : 120, '5.56' : 120, '12g' : 24}
+        self.ammoLimits = {'9mm' : 200, '7.62' : 120, '5.56' : 120, '12g' : 24}
+        self.game = game
 
     # Updates the player's in-game position
     def update(self, keysDown, time, obstacles, scrollX, scrollY):
@@ -45,13 +46,13 @@ class Player(GameObject):
             pass
         speed = self.speed // 2 if self.isSlow else self.speed
 
-        if keysDown(pygame.K_LEFT):
+        if keysDown(pygame.K_a):
             self.move(-speed, 0, obstacles)
-        if keysDown(pygame.K_RIGHT):
+        if keysDown(pygame.K_d):
             self.move(speed, 0, obstacles)
-        if keysDown(pygame.K_UP):
+        if keysDown(pygame.K_w):
             self.move(0, -speed, obstacles)
-        if keysDown(pygame.K_DOWN):
+        if keysDown(pygame.K_s):
             self.move(0, speed, obstacles)
 
         # moving left and right simultaneously is equivalent to not moving
@@ -94,6 +95,17 @@ class Player(GameObject):
 
         self.x += dx
         self.y += dy
+        self.game.mouseCoords[0] += dx
+        self.game.mouseCoords[1] += dy
+
+        if self.x > 3200:
+            self.x -= 5
+        elif self.x < -200:
+            self.x += 5
+        if self.y > 3200:
+            self.y -= 5
+        elif self.y < -200:
+            self.y += 5
 
     def rotate(self, x, y):
         if self.equippedGun is not None:
@@ -101,7 +113,8 @@ class Player(GameObject):
 
     def startReload(self, time):
         weapon = self.equippedGun
-        if self.itemInUse is not None:
+        if self.itemInUse is not None or weapon.ammo == weapon.magSize or \
+            self.ammo[weapon.type] == 0:
             return
 
         self.isSlow = True
@@ -136,7 +149,7 @@ class Player(GameObject):
         # do nothing if out of ammo or if the gun is on cooldown
         if self.equippedGun.ammo <= 0 or time - self.equippedGun.lastShot < self.equippedGun.fireDelay:
             return None
-        self.ammo[type] -= 1
+        self.equippedGun.ammo -= 1
         self.equippedGun.lastShot = time
 
         # add dispersion based to bullets based on where the player is aiming
@@ -151,22 +164,19 @@ class Player(GameObject):
         dist = (dx ** 2 + dy ** 2) ** 0.5
         time = dist / bulletSpeed
         xVelocity, yVelocity = dx / time, dy / time
-
-        self.equippedGun.ammo -= 1
-
         # return different types of bullets depending on if the shooter is a bot or
         if isBot:
-            return BotBullet(self.x + xVelocity * (4/SCALE), self.y + yVelocity * (4/SCALE),
+            return BotBullet(self.x + xVelocity * (5/SCALE), self.y + yVelocity * (5/SCALE),
                              xVelocity, yVelocity, dmg, type, self)
         else:
-            return Bullet(self.x + xVelocity*(4/SCALE), self.y + yVelocity*(4/SCALE),
+            return Bullet(self.x + xVelocity*(5/SCALE), self.y + yVelocity*(5/SCALE),
                           xVelocity, yVelocity, dmg, type)
 
     def takeDmg(self, dmg):
         self.hp -= dmg
         if self.hp < 0:
             self.hp = 0
-            '''TODO: Implement game over here'''
+            self.gameOver = True
 
     # adds an item to inventory, returning False if inventory is full
     def pickUpItem(self, item, itemGroup):
@@ -186,7 +196,7 @@ class Player(GameObject):
 
                 return True
 
-        if len(self.inventory) < self.inventorySize:
+        elif len(self.inventory) < self.inventorySize:
             self.inventory.append(item)
             return True
         return False
@@ -218,7 +228,9 @@ class Player(GameObject):
         try: self.inventory.remove(item)
         except: pass  # avoid a tragedy if something wrong happens
 
-    def finishUseItem(self):
+    def finishUseItem(self, failed=False):
+        if failed:
+            return
         # if reloading a gun, do that
         if self.itemInUse.type in AMMO_COLORS:
             self.finishReload()

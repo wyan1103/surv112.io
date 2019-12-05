@@ -14,8 +14,11 @@ class Item(GameObject):
         pygame.draw.circle(surface, color, (x, y), r)
         pygame.draw.circle(surface, BLACK, (x, y), r, 3)
 
-    def __init__(self, x, y, r, color, dx, dy):
+    def __init__(self, x, y, r, color, dx, dy, blend=False):
         super().__init__(x, y, r)
+        red, green, blue = color
+        # adds white to the color if specified
+        if blend: color = (min(red+50, 255), min(green+50, 255), min(blue+50, 255))
         self.color = color
         self.type = 'item'
         self.dx, self.dy = dx, dy

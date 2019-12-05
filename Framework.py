@@ -43,14 +43,14 @@ class PygameGame(object):
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     self.mousePressed(*(event.pos), event.button)
-                # elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-                #     self.mouseReleased(*(event.pos))
+                elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                    self.mouseReleased(*(event.pos))
                 elif (event.type == pygame.MOUSEMOTION and
                     event.buttons == (0, 0, 0)):
                     self.mouseMotion(*(event.pos))
-                # elif (event.type == pygame.MOUSEMOTION and
-                #       event.buttons[0] == 1):
-                #     self.mouseDrag(*(event.pos))
+                elif (event.type == pygame.MOUSEMOTION and
+                      event.buttons[0] == 1):
+                    self.mouseDragged(*(event.pos))
                 elif event.type == pygame.KEYDOWN:
                     self._keys[event.key] = True
                     self.keyPressed(event.key, event.mod)

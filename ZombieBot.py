@@ -1,4 +1,4 @@
-from Bot import *
+from ShootyBot import *
 import numpy as np
 
 '''
@@ -12,7 +12,7 @@ dtpStates = np.array([1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9])
 # random move chance (to evade shots)
 rmcStates = np.array([0.025, 0.05, 0.075, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06])
 # random move duration (in seconds)
-rmdStates = np.array([0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4])
+rmdStates = np.array([0.1, 0.2, 0.3, 0.4, 0.5])
 
 
 def convertToProbability(rewards):
@@ -20,8 +20,9 @@ def convertToProbability(rewards):
     probabilities = rewards / total
     return probabilities
 
-class ZombieBot(Player):
-
+class ZombieBot(GameObject):
+    learnRate = 1
+    waveCount = 0
     dtp = None
     rmc = None
     rmd = None
@@ -29,6 +30,7 @@ class ZombieBot(Player):
     stateIndices = (0, 0, 0)
     currentReward = 0
     numBots = 0
+    difficulty = 0
 
     # create reward vector
     dtpRewards = np.zeros(len(dtpStates))
@@ -37,6 +39,7 @@ class ZombieBot(Player):
 
     @staticmethod
     def startWave(numBots):
+        ZombieBot.waveCount += 1
         # normalize the lowest reward to 1 (to prevent nonpositive values) and convert to probability distribution
         ZombieBot.numBots = numBots
         dtpProbability = convertToProbability(ZombieBot.dtpRewards - np.min(ZombieBot.dtpRewards) + 1)
@@ -64,19 +67,23 @@ class ZombieBot(Player):
     def finishWave():
         dtp, rmc, rmd = ZombieBot.currentState
         reward = ZombieBot.currentReward / ZombieBot.numBots
+        lr = ZombieBot.learnRate
 
         dtpIndex = list(dtpStates).index(dtp)
         rmcIndex = list(rmcStates).index(rmc)
         rmdIndex = list(rmdStates).index(rmd)
 
+
         # modify the reward table, taking the average of historical and recent rewards
-        ZombieBot.dtpRewards[dtpIndex] = (ZombieBot.dtpRewards[dtpIndex] + reward) / 2
-        ZombieBot.rmcRewards[rmcIndex] = (ZombieBot.rmcRewards[rmcIndex] + reward) / 2
-        ZombieBot.rmdRewards[rmdIndex] = (ZombieBot.rmdRewards[rmdIndex] + reward) / 2
+        ZombieBot.dtpRewards[dtpIndex] = (ZombieBot.dtpRewards[dtpIndex] + reward * lr) / (1 + lr)
+        ZombieBot.rmcRewards[rmcIndex] = (ZombieBot.rmcRewards[rmcIndex] + reward * lr) / (1 + lr)
+        ZombieBot.rmdRewards[rmdIndex] = (ZombieBot.rmdRewards[rmdIndex] + reward * lr) / (1 + lr)
 
     def __init__(self, x, y, r=ZOMBIE_RADIUS):
-        super().__init__(x, y, r, TAN)
-        self.moveSpeed = random.randrange(3, 6)
+        super().__init__(x, y, r)
+        pygame.gfxdraw.filled_circle(self.image, r, r, r - 2, TAN)
+        pygame.draw.circle(self.image, BLACK, (r, r), r, 3)
+        self.moveSpeed = np.random.normal(4 + self.difficulty * 0.75, 1)
         self.dmg = 5
         self.hp = 50
         self.prevDistToPlayer = 0
@@ -87,10 +94,10 @@ class ZombieBot(Player):
 
     def update(self, scrollX, scrollY):
         ZombieBot.currentReward += 0.1  # reward bots for surviving longer
-        super(Player, self).update(scrollX, scrollY)
+        super().update(scrollX, scrollY)
 
 
-    def move(self, obstacles, others, target, time):
+    def move(self, obstacles, others, target, time, score):
         dx, dy = self.getBotMove(obstacles, others, target, time)
         self.x += dx
         self.y += dy
@@ -112,15 +119,21 @@ class ZombieBot(Player):
         else:
             ZombieBot.currentReward += 0.1      # and reward them for going closer
 
-        if dist > 500:
+        if dist > 800:
             ZombieBot.currentReward -= 40
             others.remove(self)                 # "Lose track" of the player if out of sight range
+            # increase score for 'kills'
+            score[0] += 10 + 2 * ZombieBot.waveCount
 
-    def takeDmg(self, dmg, bots):
-        super().takeDmg(dmg)
+    def takeDmg(self, dmg, bots, score):
+        # update score based on dmg dealt
+        score[0] += min(dmg, self.hp) + ZombieBot.waveCount
+        self.hp -= dmg
         ZombieBot.currentReward -= 5       # punish them for getting shot
         if self.hp <= 0:
             ZombieBot.currentReward -= 30   # and dying
+            # increase score for kills
+            score[0] += 10 + 2 * ZombieBot.waveCount
             bots.remove(self)
 
     def getBotMove(self, obstacles, others, target, time):
@@ -145,7 +158,7 @@ class ZombieBot(Player):
             return self.randomMove
 
 
-        for i in range(50):
+        for i in range(20):
             # create a random dx and dy move, ignoring those that result in a collision
             randX = 2 * (random.random() - 0.5) * self.moveSpeed
             randY = (self.moveSpeed ** 2 - randX ** 2) ** 0.5 * random.choice([-1, 1])
