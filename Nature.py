@@ -59,7 +59,7 @@ class Rock(GameObject):
     @staticmethod
     def init():
         # image copied from https://cliparts.zone/cartoon-rock-cliparts
-        Rock.baseImage = pygame.image.load('./images/rock.png').convert_alpha()
+        Rock.baseImage = pygame.image.load('./images./rock.png').convert_alpha()
 
     def __init__(self, x, y, r):
         super().__init__(x, y, r)

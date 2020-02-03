@@ -45,6 +45,7 @@ class Game(PygameGame):
         self.otherPlayers = pygame.sprite.Group()
 
         self.pauseBullets = False
+        self.startUp = True
         self.openInventory = False
         self.isWave = False
         self.wavesPassed = 0
@@ -119,13 +120,10 @@ class Game(PygameGame):
         if keyCode == pygame.K_f:
             itemCollisions = pygame.sprite.groupcollide(self.playerGroup, self.items, False, False)
             if self.player in itemCollisions:
-                currentWeapon = self.player.equippedGun
                 item = itemCollisions[self.player][0]
                 pickedUp = self.player.pickUpItem(item, self.items)
                 if pickedUp:
                     self.items.remove(item)
-                    if isinstance(item, WeaponItem) and currentWeapon is not None:
-                        self.dropWeapon(3, currentWeapon)
 
         if keyCode == pygame.K_i:
             self.openInventory = not self.openInventory
@@ -159,7 +157,36 @@ class Game(PygameGame):
         if keyCode == pygame.K_PERIOD:
             self.player.hp = 10**9
 
+        if keyCode == pygame.K_t:
+            if self.isWave:
+                ZombieBot.finishWave()
+            ZombieBot.startWave(1)
+            botCount = 1
+            for bot in range(botCount):
+                # randomize the position the bot spawns in
+                newBot = ZombieBot(self.player.x, self.player.y + 300)
+                self.bots.add(newBot)
+            self.botCount = botCount
+
+        if keyCode == pygame.K_1:
+            if self.player.primaryGun is not None:
+                self.player.equippedGun = self.player.primaryGun
+            # elif self.player.equippedGun == self.player.primaryGun:
+            #     self.player.equippedGun = None
+
+        if keyCode == pygame.K_2:
+            if self.player.secondaryGun is not None:
+                self.player.equippedGun = self.player.secondaryGun
+            # elif self.player.equippedGun == self.player.secondaryGun:
+            #     self.player.equippedGun = None
+
+
     def timerFired(self, dt):
+
+        if self.startUp:
+            pygame.sprite.groupcollide(pygame.sprite.Group(self.player), self.obstacles, False, True)
+        self.startUp = False
+
         if self.isPaused:
             return
 
@@ -253,9 +280,9 @@ class Game(PygameGame):
         gameOverRect = pygame.Rect(left, top, width, height)
         pygame.gfxdraw.box(screen, gameOverRect, (26, 26, 26, 150))
         pygame.draw.rect(screen, (0, 0, 0), gameOverRect, 3)
-        gameOverFont = pygame.font.SysFont("comicsansms", 48, True, True)
+        gameOverFont = pygame.font.SysFont("comicsansms", 48, True, False)
         gameOverText = gameOverFont.render(f"You Died!", True, (255, 0, 0))
-        restartFont = pygame.font.SysFont("comicsansms", 30, True, True)
+        restartFont = pygame.font.SysFont("comicsansms", 24, True, True)
         scoreText = restartFont.render(f"Score: {self.score}", True, (255, 255, 255))
         restartText = restartFont.render(f"Press 'Esc' to return home!", True, (255, 255, 255))
 
@@ -345,11 +372,22 @@ class Game(PygameGame):
         # draw primary and secondary weapon displays
         primaryRect = pygame.Rect(leftMargin + 20, topMargin + 30, 2*invWidth/5, 2 * invHeight / 7)
         secondaryRect = pygame.Rect(leftMargin + 20, topMargin + 50 + invHeight/3, 2*invWidth/5, 2 * invHeight / 7)
-        pygame.draw.rect(screen, lightGray, primaryRect)
+
+        if self.player.primaryGun is None:
+            color = lightGray
+        else:
+            color = AMMO_COLORS[self.player.primaryGun.type]
+
+        pygame.draw.rect(screen, color, primaryRect)
         pygame.draw.rect(screen, black, primaryRect, 3)
         self.primaryRect, self.secondaryRect = primaryRect, secondaryRect
 
-        pygame.draw.rect(screen, lightGray, secondaryRect)
+        if self.player.secondaryGun is None:
+            color = lightGray
+        else:
+            color = AMMO_COLORS[self.player.secondaryGun.type]
+
+        pygame.draw.rect(screen, color, secondaryRect)
         pygame.draw.rect(screen, black, secondaryRect, 3)
 
         itemsTop = primaryRect.top - 10
@@ -378,6 +416,10 @@ class Game(PygameGame):
         if self.player.primaryGun is not None:
             self.player.primaryGun.drawWeapon(screen, primaryRect.centerx, primaryRect.centery,
                                               2*primaryRect.width/3, 2*primaryRect.height/3)
+        if self.player.secondaryGun is not None:
+            self.player.secondaryGun.drawWeapon(screen, secondaryRect.centerx, secondaryRect.centery,
+                                                2*secondaryRect.width/3, 2*secondaryRect.height/3)
+
 
         # draw ammo display
         left = primaryRect.left
@@ -463,9 +505,9 @@ class Game(PygameGame):
         self.bushGroup.add(b1, b2)
 
     def initTrees(self):
-        t1 = Tree(200, 500, TREE_RADIUS)
+        # t1 = Tree(200, 500, TREE_RADIUS)
         t2 = Tree(500, 400, TREE_RADIUS)
-        self.obstacles.add(t1, t2)
+        self.obstacles.add(t2)
 
     def initHealth(self):
         h1 = MedKit(300, 500)
@@ -583,11 +625,14 @@ class Game(PygameGame):
         ammoCount = 80
         ammoTypes = ['9mm', '7.62', '5.56', '12g']
 
+        obstacles = []  # list of (x, y, r) tuples for obstacles
+
         for i in range(treeCount):
             x, y = self.getRandomCoordinates(MAPSIZE)
             tree = Tree(x, y, TREE_RADIUS)
             self.obstacles.add(tree)
             self.treeTops.add(TreeTop(tree, self))
+            obstacles.append((x, y, TREE_RADIUS))
 
         for i in range(bushCount):
             x, y = self.getRandomCoordinates(MAPSIZE)
@@ -598,6 +643,7 @@ class Game(PygameGame):
             x, y = self.getRandomCoordinates(MAPSIZE)
             rock = Rock(x, y, ROCK_RADIUS)
             self.obstacles.add(rock)
+            obstacles.append((x, y, ROCK_RADIUS))
 
         for i in range(medKitCount):
             x, y = self.getRandomCoordinates(MAPSIZE)
@@ -621,19 +667,17 @@ class Game(PygameGame):
             item = Ammo(ammoType, x, y)
             self.items.add(item)
 
-        self.scrollX, self.scrollY = self.getRandomCoordinates(MAPSIZE)
-        self.player = Player(self.scrollX, self.scrollY, PLAYER_RADIUS, game=self)
+        playerX, playerY = self.getRandomCoordinates(MAPSIZE)
+        self.player = Player(playerX, playerY, PLAYER_RADIUS, game=self)
+
+
+        self.scrollX = windowWidth//2 - playerX
+        self.scrollY = windowWidth//2 - playerY
         self.playerGroup = pygame.sprite.Group(self.player)
+
         # prevent the player from spawning inside an obstacle
-        collisions = pygame.sprite.groupcollide(self.playerGroup, self.obstacles, False, False)
-        count = 0
-        while self.player in collisions.keys():
-            self.player.x += 10
-            self.scrollX += 10
-            collisions = pygame.sprite.groupcollide(self.playerGroup, self.obstacles, False, False)
-            count += 1
-            if count > 50:
-                break
+
+
 
 
     def createTestMap(self):
@@ -644,7 +688,8 @@ class Game(PygameGame):
         self.scrollX = 300
         self.scrollY = 300
 
-        self.player = Player(self.scrollX, self.scrollY, PLAYER_RADIUS)
+        self.player = Player(self.scrollX, self.scrollY, PLAYER_RADIUS, game=self)
+        self.playerGroup = pygame.sprite.Group(self.player)
         # self.bots = pygame.sprite.Group(ShootyBot(self.player, 500, 500))
 
 
@@ -871,6 +916,34 @@ class HomeScreen(PygameGame):
             screen.blit(textSurface, (buttonRect.centerx - textSurface.get_width() / 2,
                                       buttonRect.centery - textSurface.get_height() / 2))
             self.playRect = buttonRect
+
+# copied from https://www.pygame.org/pcr/transform_scale/aspect_scale.py
+def aspect_scale(img, bx, by):
+    """ Scales 'img' to fit into box bx/by.
+     This method will retain the original image's aspect ratio """
+    ix,iy = img.get_size()
+    if ix > iy:
+        # fit to width
+        scale_factor = bx/float(ix)
+        sy = scale_factor * iy
+        if sy > by:
+            scale_factor = by/float(iy)
+            sx = scale_factor * ix
+            sy = by
+        else:
+            sx = bx
+    else:
+        # fit to height
+        scale_factor = by/float(iy)
+        sx = scale_factor * ix
+        if sx > bx:
+            scale_factor = bx/float(ix)
+            sx = bx
+            sy = scale_factor * iy
+        else:
+            sy = by
+
+    return pygame.transform.scale(img, (int(sx), int(sy)))
 
 
 HomeScreen(windowWidth, windowHeight).run()

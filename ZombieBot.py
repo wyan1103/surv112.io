@@ -8,7 +8,7 @@ based on previous trials and their results
 '''
 
 # distance to player (emphasis placed on spreading out vs. pursuing player)
-dtpStates = np.array([1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9])
+dtpStates = np.array([1.4, 1.5, 1.6, 1.7, 1.8, 1.9])
 # random move chance (to evade shots)
 rmcStates = np.array([0.025, 0.05, 0.075, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06])
 # random move duration (in seconds)
@@ -83,7 +83,7 @@ class ZombieBot(GameObject):
         super().__init__(x, y, r)
         pygame.gfxdraw.filled_circle(self.image, r, r, r - 2, TAN)
         pygame.draw.circle(self.image, BLACK, (r, r), r, 3)
-        self.moveSpeed = np.random.normal(4 + self.difficulty * 0.75, 1)
+        self.moveSpeed = np.random.normal(4 + self.difficulty * 1, 0.5)
         self.dmg = 5
         self.hp = 50
         self.prevDistToPlayer = 0
@@ -158,23 +158,26 @@ class ZombieBot(GameObject):
             return self.randomMove
 
 
-        for i in range(20):
+        for i in range(15):
             # create a random dx and dy move, ignoring those that result in a collision
             randX = 2 * (random.random() - 0.5) * self.moveSpeed
             randY = (self.moveSpeed ** 2 - randX ** 2) ** 0.5 * random.choice([-1, 1])
 
             hasCollided = self.checkCollisions(obstacles, randX, randY)
 
-            if not hasCollided:
-                # calculate the score of the move based on distance to target and other bots
-                moveScore = self.getMoveScore(randX, randY, others, target)
-                if moveScore > highestScore:
-                    highestScore = moveScore
-                    bestMove = (randX, randY)
+            if hasCollided:
+                continue
 
+            # calculate the score of the move based on distance to target and other bots
+            moveScore = self.getMoveScore(randX, randY, others, target)
+            if moveScore > highestScore:
+                highestScore = moveScore
+                bestMove = (randX, randY)
         return bestMove
 
     def getMoveScore(self, dx, dy, others, target):
+        if dx == 0 and dy == 0:
+            return -10**9
         moveX, moveY = self.x + dx, self.y + dy
         minBotDistance = 10**9
         for bot in others:
@@ -190,8 +193,8 @@ class ZombieBot(GameObject):
 
     def checkCollisions(self, obstacles, dx, dy):
         for obstacle in obstacles:
-            dx, dy = obstacle.x - (self.x + dx), obstacle.y - (self.y + dy)
-            if (dx ** 2 + dy ** 2) ** 0.5 <= self.r * 1.5 + obstacle.r:
+            distX, distY = obstacle.x - (self.x + dx), obstacle.y - (self.y + dy)
+            if (distX ** 2 + distY ** 2) ** 0.5 <= self.r * 1.2 + obstacle.r:
                 return True
         return False
 

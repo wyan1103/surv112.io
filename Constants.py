@@ -39,6 +39,6 @@ ITEM_RADIUS = int(25 // SCALE)
 AMMO_RADIUS = int(20 // SCALE)
 BULLET_RADIUS = int(6 // SCALE)
 
-windowWidth = 800
-windowHeight = 800
+windowWidth = 900
+windowHeight = 900
 mode = None

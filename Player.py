@@ -29,7 +29,7 @@ class Player(GameObject):
         self.timerStart = 0
         self.itemTimer = 0
         self.ammo = {'9mm' : 0, '7.62' : 0, '5.56' : 0, '12g' : 0}
-        self.ammoLimits = {'9mm' : 200, '7.62' : 120, '5.56' : 120, '12g' : 24}
+        self.ammoLimits = {'9mm' : 240, '7.62' : 120, '5.56' : 120, '12g' : 24}
         self.game = game
 
     # Updates the player's in-game position
@@ -180,21 +180,26 @@ class Player(GameObject):
 
     # adds an item to inventory, returning False if inventory is full
     def pickUpItem(self, item, itemGroup):
+        # for picking up weapons, requires a free slot
         if isinstance(item, WeaponItem):
-            self.primaryGun = item.createWeapon(self)
-            self.equippedGun = self.primaryGun
+            if self.primaryGun is None or self.secondaryGun is None:
+                self.equippedGun = item.createWeapon(self)
+            else:
+                return False
+            if self.primaryGun is None:
+                self.primaryGun = self.equippedGun
+            else:
+                self.secondaryGun = self.equippedGun
             return True
 
-        if isinstance(item, Ammo):
+        elif isinstance(item, Ammo):
             type = item.type
-            if self.ammo[type] < self.ammoLimits[type]:
-                self.ammo[type] += item.amount
-                if self.ammo[type] > self.ammoLimits[type]:
-                    excess = self.ammo[type] - self.ammoLimits[type]
-                    self.ammo[type] = self.ammoLimits[type]
-                    self.dropAmmo(type, itemGroup, excess)
-
-                return True
+            self.ammo[type] += item.amount
+            if self.ammo[type] > self.ammoLimits[type]:
+                excess = self.ammo[type] - self.ammoLimits[type]
+                self.ammo[type] = self.ammoLimits[type]
+                self.dropAmmo(type, itemGroup, excess)
+            return True
 
         elif len(self.inventory) < self.inventorySize:
             self.inventory.append(item)
@@ -206,6 +211,7 @@ class Player(GameObject):
         ySpeed = (random.random() - 0.5) * 20
         if amount is not None:
             gameItems.add(Ammo(type, self.x, self.y, amount, AMMO_RADIUS, xSpeed, ySpeed))
+            return
 
         if self.ammo[type] > 90:
             amount = 30

@@ -72,14 +72,14 @@ class WeaponItem(Item):
     def createWeapon(self, player):
         if self.type == '9mm':
             # smg-type weapon
-            return Weapon(player, 10, self.type, 50, magSize=32, reloadTime=1500, bulletSpread=0.3,
+            return Weapon(player, 10, self.type, 100, magSize=32, reloadTime=1500, bulletSpread=0.5,
                           bulletSpeed=12, auto=True)
         elif self.type == '7.62':
             # dmr-type weapon
             return Weapon(player, 30, self.type, 300, magSize=20, bulletSpread=0.1, bulletSpeed=20)
         elif self.type == '5.56':
             # ar-type weapon
-            return Weapon(player, 20, self.type, 100, magSize=30, auto=True)
+            return Weapon(player, 20, self.type, 160, magSize=30, auto=True)
         elif self.type == '12g':
             # sniper-type weapon
             return Weapon(player, 60, self.type, 1000, magSize=4, reloadTime=2500, bulletSpread=0.05,
